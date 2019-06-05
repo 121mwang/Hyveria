@@ -1,0 +1,97 @@
+package me.Tarsh.CoinEconomy;
+
+import org.bukkit.Server;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class CoinEconomy extends JavaPlugin{
+	
+	Server server;
+	private static final Logger log = Logger.getLogger("Minecraft");
+	
+	@Override
+	public void onEnable() {
+		server = this.getServer();
+		getCommand("pufferparty").setExecutor(this);
+		getServer().getPluginManager().registerEvents(new CoinListener(), this);
+		if (!setupEconomy()) {
+			log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
+	}
+
+	@Override
+	public void onDisable() {
+		log.severe("Puffer Party Shutting Down!");
+		for (Map.Entry<String, Boolean> entry : playerStatus.entrySet()) {
+			String player = Bukkit.getOfflinePlayer(UUID.fromString(entry.getKey())).getName();
+			getServer().dispatchCommand(getServer().getConsoleSender(), "shop addmodifier global " + player + " 1 sell");
+			getServer().dispatchCommand(getServer().getConsoleSender(), "tab player " + player + " tagsuffix");
+		}
+
+	}
+	
+
+	private boolean setupEconomy() {
+		if (getServer().getPluginManager().getPlugin("Vault") == null) {
+			return false;
+		}
+		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+		if (rsp == null) {
+			return false;
+		}
+		econ = rsp.getProvider();
+		return econ != null;
+	}
+
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+		if (!(sender instanceof Player)) {
+			log.info(ChatColor.RED + "You cannot start " + ChatColor.AQUA + "Puffer Party " + ChatColor.RED
+					+ "through console!");
+			return true;
+		}
+
+		Player player = (Player) sender;
+
+		if (command.getName().equalsIgnoreCase("pufferparty")) {
+			if (playerStatus.get("" + player.getUniqueId()) != null && playerStatus.get("" + player.getUniqueId())) {
+				sender.sendMessage(String.format(ChatColor.AQUA + "There is already an active Pufferfish Party!"));
+				return true;
+			}
+			if (econ.getBalance(player) >= cost) {
+				EconomyResponse r = econ.withdrawPlayer(player, cost);
+				if (r.transactionSuccess()) {
+					sender.sendMessage(
+							String.format(ChatColor.GREEN + "%s" + ChatColor.RED + " -> " + ChatColor.GREEN + "%s",
+									econ.format(r.balance + cost), econ.format(r.balance)));
+					sender.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+					playerStatus.put("" + player.getUniqueId(), true);
+					getServer().dispatchCommand(getServer().getConsoleSender(), "shop addmodifier global " + player.getName() + " 2 sell");
+					getServer().dispatchCommand(getServer().getConsoleSender(), "tab player " + player.getName() + " tagsuffix &e&l PufferParty &d✪");
+					
+					Timer timer = new Timer();
+
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							playerStatus.put("" + player.getUniqueId(), false);
+							sender.sendMessage(ChatColor.AQUA + "Puffer Party has ended!");
+							getServer().dispatchCommand(getServer().getConsoleSender(), "shop addmodifier global " + player.getName() + " 1 sell");
+							getServer().dispatchCommand(getServer().getConsoleSender(), "tab player " + player.getName() + " tagsuffix");
+							
+						}
+					}, 60 * 60 * 1000);
+
+				} else {
+					sender.sendMessage(String.format("An error occured: %s", r.errorMessage));
+				}
+			} else {
+				sender.sendMessage(String.format(ChatColor.RED + "Insufficient funds to start a Puffer Party"));
+			}
+		}
+
+		return true;
+	}
+	
+	
+}

@@ -1,0 +1,7 @@
+name: PufferParty
+author: Tarsh
+version: 1.0
+main: me.Tarsh.PufferParty.PufferParty
+commands:
+  pufferparty:
+    description: Starts the Puffer Party

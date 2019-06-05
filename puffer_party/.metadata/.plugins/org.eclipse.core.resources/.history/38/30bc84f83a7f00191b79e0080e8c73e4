@@ -1,0 +1,110 @@
+package me.Tarsh.PufferParty;
+
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Logger;
+
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+
+public class PufferParty extends JavaPlugin {
+
+	private static final Logger log = Logger.getLogger("Minecraft");
+	private static Economy econ = null;
+	private static int cost = 1000;
+	private static int reward = 500;
+
+	HashMap<String, Boolean> playerStatus = new HashMap<String, Boolean>();
+
+	@Override
+	public void onEnable() {
+		getCommand("pufferparty").setExecutor(this);
+		if (!setupEconomy()) {
+			log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
+	}
+
+	@Override
+	public void onDisable() {
+
+	}
+
+	private boolean setupEconomy() {
+		if (getServer().getPluginManager().getPlugin("Vault") == null) {
+			return false;
+		}
+		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+		if (rsp == null) {
+			return false;
+		}
+		econ = rsp.getProvider();
+		return econ != null;
+	}
+
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+		if (!(sender instanceof Player)) {
+			log.info(ChatColor.RED + "You cannot start " + ChatColor.AQUA + "Puffer Party " + ChatColor.RED
+					+ "through console!");
+			return true;
+		}
+
+		Player player = (Player) sender;
+
+		if (command.getName().equalsIgnoreCase("pufferparty")) {
+			if (playerStatus.get("" + player.getUniqueId()) != null && playerStatus.get("" + player.getUniqueId())) {
+				sender.sendMessage(String.format(ChatColor.AQUA + "There is already an active Pufferfish Party!"));
+				return true;
+			}
+			if (econ.getBalance(player) >= cost) {
+				EconomyResponse r = econ.withdrawPlayer(player, cost);
+				if (r.transactionSuccess()) {
+					sender.sendMessage(
+							String.format(ChatColor.GREEN + "%s" + ChatColor.RED + " -> " + ChatColor.GREEN + "%s",
+									econ.format(r.balance + cost), econ.format(r.balance)));
+					sender.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+					playerStatus.put("" + player.getUniqueId(), true);
+					Timer timer = new Timer();
+
+					timer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							playerStatus.put("" + player.getUniqueId(), false);
+						}
+					}, 60 * 60 * 1000);
+
+				} else {
+					sender.sendMessage(String.format("An error occured: %s", r.errorMessage));
+				}
+			} else {
+				sender.sendMessage(String.format(ChatColor.RED + "Insufficient funds to start a Puffer Party"));
+			}
+		}
+
+		return true;
+	}
+
+	@EventHandler
+	public void onKill(PlayerDeathEvent e) {
+		String killed = "" + e.getEntity().getUniqueId();
+		Player killer = e.getEntity().getKiller();
+
+		if (playerStatus.get(killed) != null && playerStatus.get(killed)) {
+			killer.sendMessage(String.format(ChatColor.AQUA + "You have slain a Puffer Party player"));
+			EconomyResponse r = econ.depositPlayer(killer, reward);
+		}
+
+		// e.setDeathMessage(ChatColor.RED + killed + " has been slain by " + killer);
+	}
+}

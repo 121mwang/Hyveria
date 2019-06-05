@@ -1,0 +1,48 @@
+package me.Tarsh.PufferParty;
+import java.util.List;
+
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerInteractEvent;
+
+public class PufferItem {
+	public static ItemStack setMeta(ItemStack material, String name, List<String> lore) {
+		ItemMeta im = material.getItemMeta();
+		im.setDisplayName(name);
+		im.setLore(lore);
+		
+		material.setItemMeta(im);
+		return material;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority=EventPriority.HIGH)
+	public void onPlayerUse(PlayerInteractEvent event){
+	    Player p = event.getPlayer();
+	    double toGive = p.getItemInHand().getAmount();
+	    double oldBal = CoinEconomy.econ.getBalance(p);
+	    if(p.getItemInHand().getType() == Material.SUNFLOWER && p.getItemInHand().getItemMeta().hasLore()){
+	        if (toGive + CoinEconomy.econ.getBalance(p) > coinPouch) {
+	        	while (CoinEconomy.econ.getBalance(p) < coinPouch) {
+	        		p.getItemInHand().setAmount(p.getItemInHand().getAmount() - 1);
+		        	CoinEconomy.econ.depositPlayer(p, 1);
+	        	}
+	        }
+	        else {
+		        p.getItemInHand().setAmount(0);
+	        	CoinEconomy.econ.depositPlayer(p, toGive);
+        	}
+	        p.updateInventory();
+	        
+	        if (CoinEconomy.econ.getBalance(p) != oldBal)
+		    	p.sendMessage(CoinEconomy.prefix + ChatColor.GREEN + "Coins Deposited");
+		    else {
+		    	p.sendMessage(CoinEconomy.prefix + ChatColor.RED + "Coin Pouch Full");
+		    }
+	    }
+	    
+	}
+}

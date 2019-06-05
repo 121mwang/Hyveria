@@ -1,0 +1,60 @@
+package me.Tarsh.MagicRobes;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
+import java.util.logging.Logger;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Server;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+public class MagicRobes extends JavaPlugin {
+	
+	public static Server server;
+	private static final Logger log = Logger.getLogger("Minecraft");
+	public static int cost = 1000;
+	public static int reward = 500;
+	public static int penalty = 500;
+	
+	public static MagicRobes magicRobes;
+	
+	@Override
+	public void onEnable() {
+		server = this.getServer();
+		magicRobes = this;
+		getServer().getPluginManager().registerEvents(new RobeListener(), this);
+	}
+
+	@Override
+	public void onDisable() {
+		log.severe("Puffer Party Shutting Down!");
+
+	}
+	
+
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+		if (!(sender instanceof Player)) {
+			log.info(ChatColor.RED + "You cannot start " + ChatColor.AQUA + "Puffer Party " + ChatColor.RED
+					+ "through console!");
+			return true;
+		}
+
+		Player player = (Player) sender;
+
+		
+		return true;
+	}
+	
+
+}

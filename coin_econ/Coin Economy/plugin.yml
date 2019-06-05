@@ -1,0 +1,8 @@
+name: CoinEconomy
+author: TheBedrockMiner
+version: 1.1
+main: me.Tarsh.CoinEconomy.CoinEconomy
+api-version: 1.13
+commands:
+  withdraw:
+    description: Converts pouch money into physical coins

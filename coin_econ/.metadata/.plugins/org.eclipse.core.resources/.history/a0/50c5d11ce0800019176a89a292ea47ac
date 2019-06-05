@@ -1,0 +1,6 @@
+name: CoinEconomy
+author: TheBedrockMiner
+version: 1.1
+main: me.Tarsh.CoinEconomy.CoinEconomy
+api-version: 1.13
+commands:

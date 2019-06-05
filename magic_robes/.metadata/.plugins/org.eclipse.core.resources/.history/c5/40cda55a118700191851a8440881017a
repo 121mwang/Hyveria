@@ -1,0 +1,10 @@
+name: PufferParty
+author: TheBedrockMiner
+version: 1.1
+main: me.Tarsh.PufferParty.PufferParty
+api-version: 1.13
+commands:
+  pufferparty:
+    description: Starts the Puffer Party
+  pufferlist:
+    description: Lists players in the puffer party

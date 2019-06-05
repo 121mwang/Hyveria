@@ -1,0 +1,53 @@
+package me.Tarsh.PufferParty;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerInteractEvent;
+
+public class PufferItem {
+	public static ItemStack setMeta(ItemStack material, String name, List<String> lore) {
+		ItemMeta im = material.getItemMeta();
+		im.setDisplayName(name);
+		im.setLore(lore);
+		
+		material.setItemMeta(im);
+		return material;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority=EventPriority.HIGH)
+	public void onPlayerUse(PlayerInteractEvent event){
+	    Player player = event.getPlayer();
+		if (PufferParty.playerStatus.get("" + player.getUniqueId()) != null && PufferParty.playerStatus.get("" + player.getUniqueId())) {
+			sender.sendMessage(String.format(ChatColor.AQUA + "There is already an active Pufferfish Party!"));
+			return true;
+		}
+
+		player.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+		PufferParty.playerStatus.put("" + player.getUniqueId(), true);
+		PufferParty.server.dispatchCommand(PufferParty.server.getConsoleSender(), "shop addmodifier global " + player.getName() + " 2 sell");
+		getServer().dispatchCommand(getServer().getConsoleSender(), "tab player " + player.getName() + " tagsuffix &e&l PufferParty &d✪");
+		
+		Timer timer = new Timer();
+
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				playerStatus.put("" + player.getUniqueId(), false);
+				sender.sendMessage(ChatColor.AQUA + "Puffer Party has ended!");
+				getServer().dispatchCommand(getServer().getConsoleSender(), "shop addmodifier global " + player.getName() + " 1 sell");
+				getServer().dispatchCommand(getServer().getConsoleSender(), "tab player " + player.getName() + " tagsuffix");
+				
+			}
+		}, 60 * 60 * 1000);
+
+	    
+	}
+}

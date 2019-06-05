@@ -1,0 +1,27 @@
+package me.Tarsh.PufferParty;
+
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class PufferParty extends JavaPlugin{
+	
+	@Override
+	public void onEnable() {
+		getCommand("pufferparty").setExecutor(this);
+	}
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+		
+		if (command.getName().equalsIgnoreCase("pufferparty")) {
+			sender.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+		}
+		return true;
+	}
+}

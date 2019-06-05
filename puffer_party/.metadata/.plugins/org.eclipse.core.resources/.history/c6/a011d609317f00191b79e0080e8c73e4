@@ -1,0 +1,40 @@
+package me.Tarsh.PufferParty;
+
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class PufferParty extends JavaPlugin{
+	
+	@Override
+	public void onEnable() {
+		getCommand("pufferparty").setExecutor(this);
+	}
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
+	
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+		
+		if (command.getName().equalsIgnoreCase("pufferparty")) {
+			sender.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+		}
+		return true;
+	}
+}

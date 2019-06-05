@@ -1,0 +1,6 @@
+package me.Tarsh.PufferParty;
+import org.bukkit.event.EventHandler;
+
+public class EventHandler implements Listener{
+
+}

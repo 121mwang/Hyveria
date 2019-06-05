@@ -1,0 +1,67 @@
+package me.Tarsh.CoinEconomy;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import net.ess3.api.events.UserBalanceUpdateEvent;
+import net.md_5.bungee.api.ChatColor;
+import net.minecraft.server.v1_14_R1.NBTTagCompound;
+import net.minecraft.server.v1_14_R1.NBTTagList;
+
+public class CoinListener implements Listener{
+	
+	int coinPouch = 500;
+	
+	ItemStack coins = setMeta(new ItemStack(Material.SUNFLOWER), ChatColor.YELLOW + "COINS", Arrays.asList(ChatColor.LIGHT_PURPLE + "1"));
+	
+	@EventHandler
+    public void onUpdate(UserBalanceUpdateEvent event) {
+		double bal = event.getNewBalance().doubleValue();
+		if (bal > coinPouch) {
+			event.getPlayer().sendMessage("" + CoinEconomy.econ.getBalance((event.getPlayer())));
+			
+			// Set the balance to 500, give the rest in coin value
+			double toGive = bal - coinPouch;
+			event.setNewBalance(new BigDecimal(500));
+			// Convert toGive to coins
+			for (int i = 0; i < toGive; i++) {
+				if (event.getPlayer().getInventory().firstEmpty() != -1)
+					event.getPlayer().getInventory().addItem(coins);
+				else
+					event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), coins);
+			}
+		}
+	}
+	
+	public ItemStack setMeta(ItemStack material, String name, List<String> lore) {
+		ItemMeta im = material.getItemMeta();
+		im.setDisplayName(name);
+		im.setLore(lore);
+		
+		material.setItemMeta(im);
+		return material;
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority=EventPriority.HIGH)
+	public void onPlayerUse(PlayerInteractEvent event){
+	    Player p = event.getPlayer();
+	    if(p.getItemInHand().getType() == Material.SUNFLOWER && p.getItemInHand().getItemMeta().hasLore()){
+	        p.sendMessage("" + p.getItemInHand().getAmount());
+        	CoinEconomy.econ.depositPlayer(p, p.getItemInHand().getAmount());
+        	p.getItemInHand().setAmount(0);
+	        p.updateInventory();
+	    }
+	}
+}

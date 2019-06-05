@@ -1,0 +1,6 @@
+name: MagicRobes
+author: TheBedrockMiner
+version: 1.0
+main: me.Tarsh.MagicRobes.MagicRobes
+api-version: 1.13
+commands:

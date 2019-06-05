@@ -1,0 +1,7 @@
+package me.Tarsh.CoinEconomy;
+
+import org.bukkit.event.Listener;
+
+public class CoinListener implements Listener{
+
+}

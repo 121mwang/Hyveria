@@ -1,0 +1,94 @@
+package me.Tarsh.MagicRobes;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import net.minecraft.server.v1_14_R1.NBTTagCompound;
+import net.minecraft.server.v1_14_R1.NBTTagList;
+import net.milkbowl.vault.economy.EconomyResponse;
+
+public class RobeListener implements Listener{
+	MagicRobes party;
+	
+	public RobeListener() {
+		party = MagicRobes.party;
+		
+	}
+	@EventHandler
+	public void onKill(PlayerDeathEvent e) {
+		String killed = "" + e.getEntity().getUniqueId();
+		Player killer = e.getEntity().getKiller();
+		if (MagicRobes.playerStatus.get(killed) != null && MagicRobes.playerStatus.get(killed)) {
+			killer.sendMessage(String.format(ChatColor.AQUA + "You have slain a Puffer Party player"));
+			EconomyResponse r = MagicRobes.econ.depositPlayer(killer, MagicRobes.reward);
+			killer.sendMessage(String.format(ChatColor.GREEN + "+" + MagicRobes.reward));
+			e.getEntity().sendMessage(ChatColor.RED + "You have died during a puffer party");
+			r = MagicRobes.econ.withdrawPlayer(e.getEntity(), MagicRobes.penalty);
+			e.getEntity().sendMessage(String.format(ChatColor.RED + "-" + MagicRobes.penalty));
+		}
+		
+		
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onPlayerUse(PlayerInteractEvent event){
+	    Player player = event.getPlayer();
+	    if(player.getItemInHand().getType() == Material.PUFFERFISH && player.getItemInHand().getItemMeta().hasLore()){
+			if (MagicRobes.playerStatus.get("" + player.getUniqueId()) != null && MagicRobes.playerStatus.get("" + player.getUniqueId())) {
+				player.sendMessage(String.format(ChatColor.AQUA + "There is already an active Pufferfish Party!"));
+				return;
+			}
+	
+			player.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+			player.getItemInHand().setAmount(player.getItemInHand().getAmount() - 1);
+			player.updateInventory();
+			
+			MagicRobes.playerStatus.put("" + player.getUniqueId(), true);
+			
+			MagicRobes.party.getServer().dispatchCommand(MagicRobes.party.getServer().getConsoleSender(), "tab player " + player.getName() + " tagsuffix &e&l PufferParty &d✪");
+			MagicRobes.party.getServer().dispatchCommand(MagicRobes.party.getServer().getConsoleSender(), "shop addmodifier global " + player.getName() + " 1.2 sell");
+
+		
+
+			Timer timer = new Timer();
+	
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					MagicRobes.playerStatus.put("" + player.getUniqueId(), false);
+					player.sendMessage(ChatColor.AQUA + "Puffer Party has ended!");
+					MagicRobes.party.getServer().dispatchCommand(MagicRobes.party.getServer().getConsoleSender(), "shop addmodifier global " + player.getName() + " 1 sell");
+					MagicRobes.party.getServer().dispatchCommand(MagicRobes.party.getServer().getConsoleSender(), "tab player " + player.getName() + " tagsuffix");
+					
+				}
+			}, 60 * 60 * 1000);
+	    }
+	    
+	}
+	
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e){
+	    if (MagicRobes.playerStatus.get("" + e.getPlayer().getUniqueId()) == null) {
+	    	MagicRobes.server.dispatchCommand(MagicRobes.server.getConsoleSender(), "shop addmodifier global " + e.getPlayer().getName() + " 1 sell");
+	    	MagicRobes.server.dispatchCommand(MagicRobes.server.getConsoleSender(), "tab player " + e.getPlayer().getName() + " tagsuffix");
+	    }
+	}
+}

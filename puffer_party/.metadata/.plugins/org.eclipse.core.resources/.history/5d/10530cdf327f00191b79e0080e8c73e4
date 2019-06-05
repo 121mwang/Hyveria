@@ -1,0 +1,68 @@
+package me.Tarsh.PufferParty;
+
+import java.util.logging.Logger;
+
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+
+public class PufferParty extends JavaPlugin{
+	
+	private static final Logger log = Logger.getLogger("Minecraft");
+	private static Economy econ = null;
+	
+	@Override
+	public void onEnable() {
+		getCommand("pufferparty").setExecutor(this);
+		if (!setupEconomy() ) {
+            log.severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+	}
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
+	
+	public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
+		if(!(sender instanceof Player)) {
+            log.info(ChatColor.RED + "You cannot start " + ChatColor.AQUA + "Puffer Party " + ChatColor.RED + "through console!");
+            return true;
+        }
+		
+		Player player = (Player) sender;
+		
+		if (command.getName().equalsIgnoreCase("pufferparty") && econ.getBalance(player) >= 1000) {
+			
+            EconomyResponse r = econ.withdrawPlayer(player, 1000);
+            if(r.transactionSuccess()) {
+                sender.sendMessage(String.format(ChatColor.GREEN + "%s" + ChatColor.RED + "->" + ChatColor.GREEN + "%s", econ.format(r.balance), econ.format(r.balance - r.amount)));
+                sender.sendMessage(ChatColor.AQUA + "Puffer Party Started!");
+            } else {
+                sender.sendMessage(String.format("An error occured: %s", r.errorMessage));
+            }
+		}
+		
+		return true;
+	}
+}

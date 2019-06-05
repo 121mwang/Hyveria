@@ -1,0 +1,97 @@
+package me.Tarsh.MagicRobes;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
+import net.minecraft.server.v1_14_R1.Blocks;
+import net.minecraft.server.v1_14_R1.NBTTagCompound;
+import net.minecraft.server.v1_14_R1.NBTTagList;
+import org.bukkit.scheduler.BukkitScheduler;
+
+public class RobeListener implements Listener{
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent e) {
+		Player player = e.getPlayer();
+		//player.sendMessage("HEYO");
+		BukkitScheduler scheduler = MagicRobes.magicRobes.getServer().getScheduler();
+		scheduler.scheduleSyncRepeatingTask(MagicRobes.magicRobes, new Runnable() {
+
+			@Override
+			public void run() {
+				//player.sendMessage("HEYO DAWGS");
+				// Wearing full set of armor
+				if (player.getInventory().getHelmet() != null && player.getInventory().getChestplate() != null
+						&& player.getInventory().getLeggings() != null && player.getInventory().getBoots() != null) {
+					
+					String helmLore = player.getInventory().getHelmet().getItemMeta().getLore().get(0);
+					String chestLore = player.getInventory().getChestplate().getItemMeta().getLore().get(0);
+					String leggingsLore = player.getInventory().getLeggings().getItemMeta().getLore().get(0);
+					String bootsLore = player.getInventory().getBoots().getItemMeta().getLore().get(0);
+					
+					// If part of the same set
+					if (helmLore.equals(chestLore) && helmLore.equals(leggingsLore) && helmLore.equals(bootsLore)) {
+						// Check if wearing flame set
+						if (helmLore.toLowerCase().contains("helios")) {
+							player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 20, 1));
+							if (player.getLocation().getBlock() == Blocks.SAND) {
+								player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 20, 3));
+							}
+						}
+						// Check if wearing flame set
+						if (helmLore.toLowerCase().contains("frost")) {
+							player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, 1));
+							for (Player other : Bukkit.getOnlinePlayers()) {
+								if (other.getLocation().distance(player.getLocation()) <= 3) {
+									other.addPotionEffect(new PotionEffect(
+									PotionEffectType.SLOW, 80, 2));
+								}
+							}
+						}
+						
+						if (helmLore.toLowerCase().contains("aether")) {
+							player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20, 1));
+							if (day()) {
+								player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20, 1));
+								player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 20, 1));
+							}
+						}
+					}
+				}
+				
+			}
+			
+		}, 0L, 20L);
+		
+	}
+	
+	public boolean day() {
+	    Server server = MagicRobes.server;
+	    long time = server.getWorld("world").getTime();
+
+	    return time < 12300 || time > 23850;
+	}
+}

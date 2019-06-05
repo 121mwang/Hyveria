@@ -1,0 +1,18 @@
+package me.Tarsh.CoinEconomy;
+
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+import net.ess3.api.events.UserBalanceUpdateEvent;
+
+public class CoinListener implements Listener{
+	
+	int coinPouch = 500;
+	@EventHandler
+    public void onUpdate(UserBalanceUpdateEvent event) {
+		double bal = CoinEconomy.econ.getBalance(event.getPlayer());
+		if (bal > coinPouch) {
+			
+		}
+	}
+}

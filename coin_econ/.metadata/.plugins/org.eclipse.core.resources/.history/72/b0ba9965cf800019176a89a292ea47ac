@@ -1,0 +1,72 @@
+package me.Tarsh.CoinEconomy;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+
+import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import net.ess3.api.events.UserBalanceUpdateEvent;
+import net.md_5.bungee.api.ChatColor;
+import net.minecraft.server.v1_14_R1.NBTTagCompound;
+import net.minecraft.server.v1_14_R1.NBTTagList;
+
+public class CoinListener implements Listener{
+	
+	int coinPouch = 500;
+	
+	
+	@EventHandler
+    public void onUpdate(UserBalanceUpdateEvent event) {
+		double bal = event.getNewBalance().doubleValue();
+		if (bal > coinPouch) {
+			event.getPlayer().sendMessage("" + CoinEconomy.econ.getBalance((event.getPlayer())));
+			
+			// Set the balance to 500, give the rest in coin value
+			double toGive = bal - coinPouch;
+			event.setNewBalance(new BigDecimal(500));
+			// Convert toGive to coins
+			ItemStack coins = setMeta(new ItemStack(Material.SUNFLOWER), ChatColor.YELLOW + "COINS", Arrays.asList(ChatColor.LIGHT_PURPLE + "1"));
+			for (int i = 0; i < toGive; i++) {
+				if (event.getPlayer().getInventory().firstEmpty() != -1)
+					event.getPlayer().getInventory().addItem(addGlow(coins));
+				else
+					event.getPlayer().getWorld().dropItem(event.getPlayer().getLocation(), addGlow(coins));
+			}
+		}
+	}
+	
+	public ItemStack setMeta(ItemStack material, String name, List<String> lore) {
+		ItemMeta im = material.getItemMeta();
+		im.setDisplayName(name);
+		im.setLore(lore);
+		
+		material.setItemMeta(im);
+		return material;
+	}
+	
+	public void registerGlow() {
+        try {
+            Field f = Enchantment.class.getDeclaredField("acceptingNew");
+            f.setAccessible(true);
+            f.set(null, true);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Glow glow = new Glow(70);
+            Enchantment.registerEnchantment(glow);
+        }
+        catch (IllegalArgumentException e){
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+}

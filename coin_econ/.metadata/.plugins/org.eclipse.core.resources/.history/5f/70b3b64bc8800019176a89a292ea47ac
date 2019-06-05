@@ -1,0 +1,5 @@
+package me.Tarsh.CoinEconomy;
+
+public class CoinListener implements Listener{
+
+}

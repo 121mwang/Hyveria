@@ -1,0 +1,22 @@
+package me.Tarsh.PufferParty;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.Listener;
+
+import net.milkbowl.vault.economy.EconomyResponse;
+
+public class PufferListener implements Listener{
+	
+	@EventHandler
+	public void onKill(PlayerDeathEvent e) {
+		String killed = "" + e.getEntity().getUniqueId();
+		Player killer = e.getEntity().getKiller();
+		if (PufferParty.playerStatus.get(killed) != null && PufferParty.playerStatus.get(killed)) {
+			killer.sendMessage(String.format(ChatColor.AQUA + "You have slain a Puffer Party player"));
+			EconomyResponse r = PufferParty.econ.depositPlayer(killer, PufferParty.reward);
+			killer.sendMessage(String.format(ChatColor.GREEN + "+" + PufferParty.reward));
+		}
+	}
+}
